@@ -1,0 +1,4 @@
+flask
+gunicorn
+fastf1
+pandas
