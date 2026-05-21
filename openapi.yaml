@@ -1,0 +1,326 @@
+openapi: 3.0.3
+info:
+  title: Pitlane FastF1 API
+  version: 0.1.0
+  description: API Flask para datos livianos de FastF1 usados por Race Center.
+servers:
+  - url: http://localhost:5000
+paths:
+  /:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: API disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+  /race-result/{year}/{race}:
+    get:
+      summary: Resultado de carrera
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+      responses:
+        "200":
+          description: Resultado de carrera
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+  /qualifying-result/{year}/{race}:
+    get:
+      summary: Resultado de clasificación
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+      responses:
+        "200":
+          description: Resultado de clasificación
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+  /fastest-laps/{year}/{race}:
+    get:
+      summary: Vueltas rápidas de carrera
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+        - $ref: "#/components/parameters/Drivers"
+      responses:
+        "200":
+          description: Vueltas rápidas por piloto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FastestLapsResponse"
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+  /fastest-laps/{year}/{race}/{session_code}:
+    get:
+      summary: Vueltas rápidas por sesión
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+        - $ref: "#/components/parameters/SessionCode"
+        - $ref: "#/components/parameters/Drivers"
+      responses:
+        "200":
+          description: Vueltas rápidas por piloto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FastestLapsResponse"
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+  /session-view/{year}/{race}/{session_code}:
+    get:
+      summary: Vista liviana de sesión
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+        - $ref: "#/components/parameters/SessionCode"
+      responses:
+        "200":
+          description: Vueltas livianas agrupadas por piloto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionViewResponse"
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+  /telemetry/{year}/{race}/{session_code}/{driver}/{lap_number}:
+    get:
+      summary: Telemetría liviana de una vuelta
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Race"
+        - $ref: "#/components/parameters/SessionCode"
+        - name: driver
+          in: path
+          required: true
+          schema:
+            type: string
+          example: ANT
+        - name: lap_number
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 34
+      responses:
+        "200":
+          description: Puntos de telemetría de la vuelta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+        "404":
+          description: Vuelta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/SessionLoadError"
+components:
+  parameters:
+    Year:
+      name: year
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 2026
+    Race:
+      name: race
+      in: path
+      required: true
+      schema:
+        type: string
+      example: Miami
+    SessionCode:
+      name: session_code
+      in: path
+      required: true
+      schema:
+        type: string
+      example: R
+    Drivers:
+      name: drivers
+      in: query
+      required: false
+      schema:
+        type: string
+      example: ANT,LEC
+  responses:
+    SessionLoadError:
+      description: No se pudo cargar la sesión
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: No se pudo cargar la sesión
+        detail:
+          type: string
+    Lap:
+      type: object
+      properties:
+        lapNumber:
+          type: integer
+          nullable: true
+        lapTime:
+          type: string
+          nullable: true
+          example: "1:31.968"
+        lapDuration:
+          type: number
+          nullable: true
+          example: 91.968
+        sector1:
+          type: number
+          nullable: true
+        sector2:
+          type: number
+          nullable: true
+        sector3:
+          type: number
+          nullable: true
+        compound:
+          type: string
+          nullable: true
+          example: MEDIUM
+        stint:
+          type: integer
+          nullable: true
+        tyreLife:
+          type: integer
+          nullable: true
+        isPersonalBest:
+          type: boolean
+          nullable: true
+    FastestLap:
+      type: object
+      properties:
+        driver:
+          type: string
+          example: ANT
+        lapNumber:
+          type: integer
+          nullable: true
+        lapTime:
+          type: string
+          nullable: true
+        lapDuration:
+          type: number
+          nullable: true
+        sector1:
+          type: number
+          nullable: true
+        sector2:
+          type: number
+          nullable: true
+        sector3:
+          type: number
+          nullable: true
+        compound:
+          type: string
+          nullable: true
+        tyreLife:
+          type: integer
+          nullable: true
+    FastestLapsResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        race:
+          type: string
+        session:
+          type: string
+        laps:
+          type: array
+          items:
+            $ref: "#/components/schemas/FastestLap"
+    SessionViewResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        race:
+          type: string
+        session:
+          type: string
+        drivers:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: ANT
+              laps:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lap"
+    TelemetryPoint:
+      type: object
+      properties:
+        distance:
+          type: number
+          nullable: true
+        speed:
+          type: integer
+          nullable: true
+        throttle:
+          type: integer
+          nullable: true
+        brake:
+          type: boolean
+          nullable: true
+        rpm:
+          type: integer
+          nullable: true
+        gear:
+          type: integer
+          nullable: true
+        timeSeconds:
+          type: number
+          nullable: true
+    TelemetryResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        race:
+          type: string
+        session:
+          type: string
+        driver:
+          type: string
+        lapNumber:
+          type: integer
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/TelemetryPoint"
