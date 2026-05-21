@@ -3,3 +3,5 @@ flask-cors
 gunicorn
 fastf1
 pandas
+supabase
+python-dotenv

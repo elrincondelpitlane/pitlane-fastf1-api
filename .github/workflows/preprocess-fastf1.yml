@@ -1,0 +1,46 @@
+name: Preprocess FastF1
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: Season year
+        required: true
+        type: string
+        default: "2026"
+      gp:
+        description: Grand Prix name or round identifier
+        required: true
+        type: string
+        default: Miami
+      session:
+        description: FastF1 session code
+        required: true
+        type: string
+        default: R
+
+jobs:
+  preprocess:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_FASTF1_BUCKET: ${{ secrets.SUPABASE_FASTF1_BUCKET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Preprocess FastF1 session
+        run: python scripts/preprocess_session.py --year "${{ inputs.year }}" --gp "${{ inputs.gp }}" --session "${{ inputs.session }}"
+
+      - name: Upload processed JSON to Supabase
+        run: python scripts/upload_to_supabase.py --year "${{ inputs.year }}" --gp "${{ inputs.gp }}" --session "${{ inputs.session }}"
