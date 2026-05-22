@@ -4,24 +4,25 @@ on:
   workflow_dispatch:
     inputs:
       year:
-        description: Season year
+        description: "Season year"
         required: true
         type: string
         default: "2026"
       gp:
-        description: Grand Prix name or round identifier
+        description: "Grand Prix name or round identifier"
         required: true
         type: string
-        default: Miami
+        default: "Miami"
       session:
-        description: FastF1 session code
+        description: "FastF1 session code"
         required: true
         type: string
-        default: R
+        default: "R"
 
 jobs:
   preprocess:
     runs-on: ubuntu-latest
+
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
