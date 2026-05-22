@@ -101,7 +101,19 @@ def load_session(year, gp, session_code):
     fastf1.Cache.enable_cache(str(FASTF1_CACHE_DIR))
 
     session = fastf1.get_session(year, gp, session_code)
-    session.load()
+    try:
+        session.load(
+            laps=True,
+            telemetry=True,
+            weather=False,
+            messages=False,
+        )
+    except TypeError:
+        session.load()
+
+    if session.laps is None or session.laps.empty:
+        raise RuntimeError("No se cargaron vueltas para esta sesión")
+
     return session
 
 
