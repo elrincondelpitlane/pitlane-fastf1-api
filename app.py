@@ -1,4 +1,6 @@
+import json
 import os
+from pathlib import Path
 
 import fastf1
 import pandas as pd
@@ -11,6 +13,7 @@ CORS(app)
 FASTF1_CACHE_DIR = os.path.join("cache", "fastf1")
 os.makedirs(FASTF1_CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(FASTF1_CACHE_DIR)
+PROCESSED_DIR = Path("processed")
 
 
 def safe_value(value):
@@ -76,6 +79,21 @@ def session_load_error(error):
         "message": "No se pudo cargar la sesión",
         "detail": str(error)
     }), 500
+
+
+def read_processed_json(path):
+    if not path.exists():
+        return None
+
+    with path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def not_processed_response():
+    return jsonify({
+        "status": "not_processed",
+        "message": "Sesión no procesada todavía"
+    })
 
 @app.route("/")
 def home():
@@ -146,117 +164,38 @@ def fastest_laps_race(year, race):
 
 @app.route("/fastest-laps/<int:year>/<race>/<session_code>")
 def fastest_laps(year, race, session_code):
-    try:
-        session = load_fastf1_session(year, race, session_code)
-        laps = session.laps.pick_quicklaps()
-        requested_drivers = request.args.get("drivers")
+    path = PROCESSED_DIR / "sessions" / str(year) / race / session_code / "fastest-laps.json"
+    payload = read_processed_json(path)
+    if payload is None:
+        return not_processed_response()
 
-        if requested_drivers:
-            drivers = [driver.strip().upper() for driver in requested_drivers.split(",") if driver.strip()]
-        else:
-            drivers = sorted(laps["Driver"].dropna().unique())
+    requested_drivers = request.args.get("drivers")
+    if requested_drivers:
+        drivers = {driver.strip().upper() for driver in requested_drivers.split(",") if driver.strip()}
+        payload["laps"] = [lap for lap in payload.get("laps", []) if lap.get("driver") in drivers]
 
-        data = []
-        for driver in drivers:
-            driver_laps = laps.pick_driver(driver)
-            if driver_laps.empty:
-                continue
-
-            fastest_lap = driver_laps.pick_fastest()
-            if fastest_lap is None:
-                continue
-
-            data.append({
-                "driver": driver,
-                "lapNumber": safe_value(fastest_lap.get("LapNumber")),
-                "lapTime": format_lap_time(fastest_lap.get("LapTime")),
-                "lapDuration": timedelta_to_seconds(fastest_lap.get("LapTime")),
-                "sector1": timedelta_to_seconds(fastest_lap.get("Sector1Time")),
-                "sector2": timedelta_to_seconds(fastest_lap.get("Sector2Time")),
-                "sector3": timedelta_to_seconds(fastest_lap.get("Sector3Time")),
-                "compound": safe_value(fastest_lap.get("Compound")),
-                "tyreLife": safe_value(fastest_lap.get("TyreLife")),
-            })
-
-        return jsonify({
-            "year": year,
-            "race": race,
-            "session": session_code,
-            "laps": data
-        })
-
-    except Exception as e:
-        return session_load_error(e)
+    return jsonify(payload)
 
 
 @app.route("/session-view/<int:year>/<race>/<session_code>")
 def session_view(year, race, session_code):
-    try:
-        session = load_fastf1_session(year, race, session_code)
-        laps = session.laps
-        drivers = []
+    path = PROCESSED_DIR / "sessions" / str(year) / race / session_code / "session-view.json"
+    payload = read_processed_json(path)
+    if payload is None:
+        return not_processed_response()
 
-        for driver in sorted(laps["Driver"].dropna().unique()):
-            driver_laps = laps.pick_driver(driver).sort_values("LapNumber")
-            drivers.append({
-                "code": driver,
-                "laps": [serialize_lap(lap) for _, lap in driver_laps.iterrows()]
-            })
-
-        return jsonify({
-            "year": year,
-            "race": race,
-            "session": session_code,
-            "drivers": drivers
-        })
-
-    except Exception as e:
-        return session_load_error(e)
+    return jsonify(payload)
 
 
 @app.route("/telemetry/<int:year>/<race>/<session_code>/<driver>/<int:lap_number>")
 def telemetry(year, race, session_code, driver, lap_number):
-    try:
-        session = load_fastf1_session(year, race, session_code)
-    except Exception as e:
-        return session_load_error(e)
+    filename = f"{driver.upper()}_L{lap_number}.json"
+    path = PROCESSED_DIR / "telemetry" / str(year) / race / session_code / filename
+    payload = read_processed_json(path)
+    if payload is None:
+        return not_processed_response()
 
-    driver_laps = session.laps.pick_driver(driver.upper())
-    lap_matches = driver_laps[driver_laps["LapNumber"] == lap_number]
-
-    if lap_matches.empty:
-        return jsonify({
-            "status": "error",
-            "message": "Vuelta no encontrada"
-        }), 404
-
-    lap = lap_matches.iloc[0]
-
-    try:
-        car_data = lap.get_car_data().add_distance()
-    except Exception as e:
-        return session_load_error(e)
-
-    points = []
-    for _, row in car_data.iterrows():
-        points.append({
-            "distance": safe_value(row.get("Distance")),
-            "speed": safe_value(row.get("Speed")),
-            "throttle": safe_value(row.get("Throttle")),
-            "brake": safe_value(row.get("Brake")),
-            "rpm": safe_value(row.get("RPM")),
-            "gear": safe_value(row.get("nGear")),
-            "timeSeconds": timedelta_to_seconds(row.get("Time")),
-        })
-
-    return jsonify({
-        "year": year,
-        "race": race,
-        "session": session_code,
-        "driver": driver.upper(),
-        "lapNumber": lap_number,
-        "points": points
-    })
+    return jsonify(payload)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
