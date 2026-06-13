@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏎 El Rincón 3D Lab — Dashboard ERP</title>
+<style>
+:root{--bg:#08080E;--bg2:#0F0F18;--card:#13131E;--card2:#1A1A28;--border:rgba(255,255,255,0.07);--accent:#E31837;--gold:#FFD700;--teal:#00BCD4;--green:#00E676;--purple:#CE93D8;--orange:#FF9800;--text:#F0F0F0;--muted:#7A7A90;--dim:#2A2A3E;--font:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:13px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+/* HEADER */
+header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-name{font-size:14px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.logo-sub{font-size:10px;color:var(--muted)}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.hdr-date{font-size:10px;color:var(--muted)}
+.badge-live{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.badge-live::before{content:"●";margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* FILTERS */
+.fbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fg{display:flex;align-items:center;gap:5px}
+.flbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
+.fbtn{padding:3px 9px;border-radius:5px;border:1px solid var(--dim);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.fbtn:hover{border-color:var(--accent);color:var(--text)}
+.fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.fsep{width:1px;height:18px;background:var(--border)}
+.fdepto{font-size:10px;color:var(--accent);font-weight:600}
+/* MAIN */
+main{padding:16px 20px;max-width:1560px;margin:0 auto}
+/* KPI GRID */
+.krow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+@media(max-width:1100px){.krow{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:580px){.krow{grid-template-columns:repeat(2,1fr)}}
+.kcard{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:13px 14px;position:relative;overflow:hidden;transition:transform .2s}
+.kcard:hover{transform:translateY(-2px)}
+.kcard::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
+.c-r::before{background:var(--accent)}
+.c-g::before{background:var(--green)}
+.c-y::before{background:var(--gold)}
+.c-t::before{background:var(--teal)}
+.c-o::before{background:var(--orange)}
+.c-p::before{background:var(--purple)}
+.klbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.kval{font-size:20px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.c-r .kval{color:#FF5C6E}.c-g .kval{color:var(--green)}.c-y .kval{color:var(--gold)}.c-t .kval{color:var(--teal)}.c-o .kval{color:var(--orange)}.c-p .kval{color:var(--purple)}
+.kdelta{font-size:9px;color:var(--muted);margin-top:4px}
+.kico{position:absolute;right:10px;top:10px;font-size:18px;opacity:.12}
+/* CHART GRIDS */
+.cgrid2{display:grid;grid-template-columns:1fr 310px;gap:12px;margin-bottom:12px}
+.cgrid3{display:grid;grid-template-columns:1.5fr 1fr 1.2fr;gap:12px;margin-bottom:12px}
+.cgrid3b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:1100px){.cgrid2{grid-template-columns:1fr}.cgrid3{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.cgrid3,.cgrid3b{grid-template-columns:1fr}}
+/* CHART CARD */
+.cc{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:14px}
+.ctitle{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:5px}
+.ctitle em{color:var(--accent);font-style:normal}
+/* MAP */
+.mcont{display:flex;flex-direction:column;align-items:center;gap:5px}
+.mlbl{font-size:10px;color:var(--accent);font-weight:600;min-height:16px;text-align:center}
+#umap{width:100%;max-width:290px;cursor:pointer}
+.mleg{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted)}
+.mleg-bar{width:70px;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--card2),var(--accent))}
+/* STATS */
+.srow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.srow:last-child{border-bottom:none}
+.slbl{font-size:10px;color:var(--muted)}
+.sval{font-size:12px;font-weight:700}
+.pbar{height:4px;background:var(--dim);border-radius:2px;margin-top:3px;overflow:hidden}
+.pfill{height:100%;border-radius:2px;transition:width 1.2s ease}
+/* TOOLTIP */
+#tip{position:fixed;background:rgba(8,8,14,.95);border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:10px;pointer-events:none;z-index:9999;display:none;backdrop-filter:blur(8px);max-width:200px;line-height:1.5}
+#tip strong{color:var(--accent)}
+/* MINI BADGE */
+.seg-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700}
+.seg-VIP{background:rgba(227,24,55,.2);color:#FF5C6E}
+.seg-Frecuente{background:rgba(255,215,0,.15);color:var(--gold)}
+.seg-Ocasional{background:rgba(0,188,212,.15);color:var(--teal)}
+.seg-Dormido{background:rgba(120,120,150,.15);color:#777}
+/* FOOTER */
+footer{text-align:center;padding:16px 20px;color:var(--muted);font-size:9px;border-top:1px solid var(--border);margin-top:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏎</div>
+    <div>
+      <div class="logo-name">El Rincón 3D Lab</div>
+      <div class="logo-sub">Business Intelligence · ERP Dashboard</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-date" id="hdrDate"></span>
+    <span class="badge-live">EN VIVO</span>
+  </div>
+</header>
+
+<div class="fbar">
+  <div class="fg">
+    <span class="flbl">Región</span>
+    <button class="fbtn on" onclick="sf('region','todo')">Todo</button>
+    <button class="fbtn" onclick="sf('region','Montevideo')">Montevideo</button>
+    <button class="fbtn" onclick="sf('region','Interior')">Interior</button>
+  </div>
+  <div class="fsep"></div>
+  <div class="fg">
+    <span class="flbl">Canal</span>
+    <button class="fbtn on" onclick="sf('canal','todo')">Todo</button>
+    <button class="fbtn" onclick="sf('canal','Instagram')">📸 Instagram</button>
+    <button class="fbtn" onclick="sf('canal','WhatsApp')">💬 WhatsApp</button>
+    <button class="fbtn" onclick="sf('canal','Facebook')">👤 Facebook</button>
+    <button class="fbtn" onclick="sf('canal','WooCommerce')">🛒 WooCommerce</button>
+  </div>
+  <div class="fsep"></div>
+  <div class="fg">
+    <span class="flbl">Depto.</span>
+    <span class="fdepto" id="fdep">Todos</span>
+    <button class="fbtn" id="clearDep" style="display:none" onclick="clearDep()">✕</button>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<main>
+  <!-- KPIs -->
+  <div class="krow">
+    <div class="kcard c-r"><div class="kico">💵</div><div class="klbl">Facturación Mayo</div><div class="kval" id="kFact">$0</div><div class="kdelta" id="kFact2"></div></div>
+    <div class="kcard c-g"><div class="kico">📈</div><div class="klbl">Ganancia Neta</div><div class="kval" id="kGan">$0</div><div class="kdelta" id="kGan2"></div></div>
+    <div class="kcard c-y"><div class="kico">%</div><div class="klbl">Margen Prom.</div><div class="kval" id="kMrg">0%</div><div class="kdelta" id="kMrg2"></div></div>
+    <div class="kcard c-t"><div class="kico">🎫</div><div class="klbl">Ticket Promedio</div><div class="kval" id="kTck">$0</div><div class="kdelta" id="kTck2"></div></div>
+    <div class="kcard c-o"><div class="kico">📦</div><div class="klbl">Pedidos</div><div class="kval" id="kPed">0</div><div class="kdelta" id="kPed2"></div></div>
+    <div class="kcard c-p"><div class="kico">👥</div><div class="klbl">Clientes Únicos</div><div class="kval" id="kCli">0</div><div class="kdelta" id="kCli2"></div></div>
+  </div>
+
+  <!-- ROW 1 -->
+  <div class="cgrid2">
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> EVOLUCIÓN DE FACTURACIÓN — MAYO 2025 (Acumulado diario)</div>
+      <canvas id="cEvo" height="185"></canvas>
+    </div>
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> MAPA URUGUAY · Facturación por depto.</div>
+      <div class="mcont">
+        <div class="mlbl" id="mLbl">Clickeá un departamento para filtrar</div>
+        <svg id="umap" viewBox="0 0 300 360" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15,8 L60,4 L120,2 L185,7 L240,16 L275,42 L285,82 L282,122 L272,160 L268,205 L270,245 L262,283 L248,308 L215,332 L175,345 L140,348 L105,340 L70,327 L35,310 L12,285 L4,255 L0,215 L5,172 L10,130 L8,85 L10,52 L15,25 Z"
+            fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+          <g id="mdepts"></g>
+        </svg>
+        <div class="mleg"><span>Bajo</span><div class="mleg-bar"></div><span>Alto</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="cgrid3">
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> TOP PRODUCTOS · Facturación mayo</div>
+      <canvas id="cProd" height="215"></canvas>
+    </div>
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> CANALES DE VENTA</div>
+      <canvas id="cCan" height="215"></canvas>
+    </div>
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> TOP CLIENTES · LTV histórico</div>
+      <canvas id="cCli" height="215"></canvas>
+    </div>
+  </div>
+
+  <!-- ROW 3 -->
+  <div class="cgrid3b">
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> GASTOS POR CATEGORÍA</div>
+      <canvas id="cGas" height="165"></canvas>
+    </div>
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> PITBOT — MÉTRICAS IA</div>
+      <div id="botStats"></div>
+    </div>
+    <div class="cc">
+      <div class="ctitle"><em>▸</em> EMBUDO COMERCIAL · Leads</div>
+      <div id="funStats"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  El Rincón 3D Lab · ERP Dashboard · Período: Mayo 2025 · 10 ventas · 8 clientes · 90 SKUs activos · 8 conv. PitBot
+</footer>
+
+<script>
+// ─── POLYFILL roundRect ───────────────────────────────────
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r=0){
+    if(w<2*r)r=w/2;if(h<2*r)r=h/2;
+    this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);this.closePath();return this;
+  };
+}
+
+// ─── DATA ────────────────────────────────────────────────
+const VENTAS=[
+  {id:1,f:"2025-05-01",idc:1,cli:"Martín García",canal:"Instagram",est:"Pagado",fact:450,gan:220,dep:"Montevideo",ciu:"Montevideo"},
+  {id:2,f:"2025-05-03",idc:5,cli:"Carlos López",canal:"WhatsApp",est:"Pagado",fact:380,gan:185,dep:"Rivera",ciu:"Rivera"},
+  {id:3,f:"2025-05-05",idc:1,cli:"Martín García",canal:"WooCommerce",est:"Pagado",fact:2100,gan:790,dep:"Montevideo",ciu:"Montevideo"},
+  {id:4,f:"2025-05-08",idc:6,cli:"Sofía Pérez",canal:"WhatsApp",est:"Pagado",fact:1800,gan:955,dep:"Maldonado",ciu:"Maldonado"},
+  {id:5,f:"2025-05-10",idc:2,cli:"Laura Rodríguez",canal:"Instagram",est:"Pagado",fact:1100,gan:465,dep:"Salto",ciu:"Salto"},
+  {id:6,f:"2025-05-12",idc:7,cli:"Pablo González",canal:"WooCommerce",est:"Pagado",fact:90,gan:59,dep:"Canelones",ciu:"Canelones"},
+  {id:7,f:"2025-05-15",idc:5,cli:"Carlos López",canal:"Instagram",est:"Pagado",fact:500,gan:215,dep:"Rivera",ciu:"Rivera"},
+  {id:8,f:"2025-05-18",idc:3,cli:"Diego Fernández",canal:"Facebook",est:"Pendiente",fact:1400,gan:640,dep:"Paysandú",ciu:"Paysandú"},
+  {id:9,f:"2025-05-20",idc:1,cli:"Martín García",canal:"WooCommerce",est:"Pagado",fact:1200,gan:560,dep:"Montevideo",ciu:"Montevideo"},
+  {id:10,f:"2025-05-22",idc:6,cli:"Sofía Pérez",canal:"WhatsApp",est:"Pagado",fact:3200,gan:1790,dep:"Maldonado",ciu:"Maldonado"},
+];
+
+const CLIENTES=[
+  {id:1,nom:"Martín García",dep:"Montevideo",seg:"VIP",fact:12500,gan:4800,peds:8},
+  {id:2,nom:"Carlos López",dep:"Rivera",seg:"VIP",fact:9200,gan:3600,peds:6},
+  {id:3,nom:"Sofía Pérez",dep:"Maldonado",seg:"Frecuente",fact:5600,gan:2100,peds:4},
+  {id:4,nom:"Laura Rodríguez",dep:"Salto",seg:"Frecuente",fact:3800,gan:1420,peds:3},
+  {id:5,nom:"Diego Fernández",dep:"Paysandú",seg:"Ocasional",fact:2200,gan:820,peds:2},
+  {id:6,nom:"Pablo González",dep:"Canelones",seg:"Ocasional",fact:1800,gan:680,peds:2},
+  {id:7,nom:"María Suárez",dep:"Tacuarembó",seg:"Dormido",fact:1600,gan:600,peds:2},
+  {id:8,nom:"Ana Martínez",dep:"Montevideo",seg:"Dormido",fact:950,gan:350,peds:1},
+];
+
+// product per sale id
+const PROD_MAP={1:"Alerón F1 1:18",2:"Circuito Monaco",3:"Hoodie F1",4:"Lámpara LED F1",5:"Remera F1",6:"Llavero F1",7:"Mini Garaje F1",8:"Mate F1 Pers.",9:"Gorra F1",10:"Neón LED F1"};
+
+const GASTOS=[
+  {cat:"Publicidad",tot:4000},{cat:"Filamento",tot:2450},{cat:"Servicios",tot:1200},
+  {cat:"Envíos",tot:840},{cat:"DTF",tot:800},{cat:"Packaging",tot:650},
+  {cat:"Software",tot:630},{cat:"Equipamiento",tot:420},
+];
+
+const LEADS=[
+  {est:"Ganado",n:2},{est:"En negociación",n:1},{est:"Presupuestado",n:1},
+  {est:"Contactado",n:1},{est:"Nuevo",n:1},{est:"Perdido",n:2},
+];
+
+const BOT={total:8,ventas:2,resueltos:4,tiempo:2.1,sat:4.5};
+const PUB={inv:7000,fact:68400,roas:9.8,cac:875};
+
+const DEPTOS=[
+  {nm:"Artigas",ab:"AR",cx:100,cy:30},{nm:"Salto",ab:"SA",cx:28,cy:108},
+  {nm:"Rivera",ab:"RV",cx:198,cy:72},{nm:"Paysandú",ab:"PA",cx:28,cy:173},
+  {nm:"Tacuarembó",ab:"TA",cx:145,cy:133},{nm:"Río Negro",ab:"RN",cx:40,cy:232},
+  {nm:"Durazno",ab:"DU",cx:150,cy:197},{nm:"Cerro Largo",ab:"CL",cx:225,cy:165},
+  {nm:"Treinta y T.",ab:"TT",cx:230,cy:222},{nm:"Flores",ab:"FL",cx:96,cy:250},
+  {nm:"Florida",ab:"FO",cx:170,cy:252},{nm:"Soriano",ab:"SO",cx:50,cy:277},
+  {nm:"San José",ab:"SJ",cx:120,cy:292},{nm:"Lavalleja",ab:"LA",cx:218,cy:272},
+  {nm:"Rocha",ab:"RO",cx:260,cy:252},{nm:"Colonia",ab:"CO",cx:47,cy:318},
+  {nm:"Canelones",ab:"CA",cx:160,cy:313},{nm:"Maldonado",ab:"MA",cx:242,cy:308},
+  {nm:"Montevideo",ab:"MV",cx:130,cy:340,mvd:true},
+];
+
+// ─── STATE ───────────────────────────────────────────────
+let FIL={region:"todo",canal:"todo",dep:null};
+let FV=[...VENTAS];
+
+// ─── FORMAT ──────────────────────────────────────────────
+const $ = (n,ab=false)=>{
+  if(ab&&n>=1e6)return '$'+(n/1e6).toFixed(1)+'M';
+  if(ab&&n>=1e3)return '$'+(n/1e3).toFixed(0)+'K';
+  return '$'+Math.round(n).toLocaleString('es-UY');
+};
+const pct=n=>n.toFixed(1)+'%';
+
+// ─── FILTER LOGIC ────────────────────────────────────────
+function sf(type,val){
+  FIL[type]=val;
+  document.querySelectorAll('.fbtn').forEach(b=>{
+    const oc=b.getAttribute('onclick')||'';
+    b.classList.toggle('on', oc.includes(`'${type}'`)&&oc.includes(`'${val}'`));
+  });
+  run();
+}
+function clearDep(){
+  FIL.dep=null;
+  document.getElementById('fdep').textContent='Todos';
+  document.getElementById('clearDep').style.display='none';
+  document.getElementById('mLbl').textContent='Clickeá un departamento para filtrar';
+  document.querySelectorAll('.dc').forEach(c=>c.classList.remove('sel'));
+  run();
+}
+function pickDep(nm){
+  if(FIL.dep===nm){clearDep();return;}
+  FIL.dep=nm;
+  document.getElementById('fdep').textContent=nm;
+  document.getElementById('clearDep').style.display='inline-block';
+  document.getElementById('mLbl').textContent='📍 '+nm;
+  document.querySelectorAll('.dc').forEach(c=>c.classList.toggle('sel',c.dataset.nm===nm));
+  run();
+}
+function applyF(){
+  FV=VENTAS.filter(v=>{
+    if(FIL.region==='Montevideo'&&v.dep!=='Montevideo')return false;
+    if(FIL.region==='Interior'&&v.dep==='Montevideo')return false;
+    if(FIL.canal!=='todo'&&v.canal!==FIL.canal)return false;
+    if(FIL.dep&&v.dep!==FIL.dep)return false;
+    return true;
+  });
+}
+
+// ─── KPI ANIMATION ───────────────────────────────────────
+function animN(id,to,pre='',suf='',dec=0,dur=650){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const t0=performance.now();
+  (function tick(now){
+    const p=Math.min((now-t0)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    const v=to*e;
+    el.textContent=pre+(dec?v.toFixed(dec):Math.round(v).toLocaleString('es-UY'))+suf;
+    if(p<1)requestAnimationFrame(tick);
+  })(t0);
+}
+
+function updKPIs(){
+  const tf=FV.reduce((s,v)=>s+v.fact,0);
+  const tg=FV.reduce((s,v)=>s+v.gan,0);
+  const mr=tf>0?tg/tf*100:0;
+  const tk=FV.length?tf/FV.length:0;
+  const nc=new Set(FV.map(v=>v.idc)).size;
+  animN('kFact',tf,'$','',0,700);
+  animN('kGan',tg,'$','',0,700);
+  animN('kMrg',mr,'','%',1,700);
+  animN('kTck',tk,'$','',0,600);
+  animN('kPed',FV.length,'','',0,400);
+  animN('kCli',nc,'','',0,400);
+  document.getElementById('kFact2').textContent='Gan: '+($(tg));
+  document.getElementById('kGan2').textContent='Margen: '+pct(mr);
+  document.getElementById('kMrg2').textContent='Meta: 35%';
+  document.getElementById('kTck2').textContent='Meta: $1.200';
+  document.getElementById('kPed2').textContent=`${FV.filter(v=>v.est==='Pagado').length} pagados`;
+  document.getElementById('kCli2').textContent=`${FV.filter(v=>v.dep==='Montevideo').length} Mvdeo.`;
+}
+
+// ─── CANVAS UTILS ────────────────────────────────────────
+const DPR=window.devicePixelRatio||1;
+const COLS=['#E31837','#FFD700','#00BCD4','#00E676','#FF6F00','#9C27B0','#FF5722','#2196F3','#4CAF50','#FF9800'];
+const CANAL_COL={Instagram:'#E31837',WhatsApp:'#25D366',Facebook:'#1877F2',WooCommerce:'#96588A'};
+const SEG_COL={VIP:'#E31837',Frecuente:'#FFD700',Ocasional:'#00BCD4',Dormido:'#555'};
+
+function prepCanvas(id,cssH){
+  const c=document.getElementById(id);
+  if(!c)return null;
+  const W=c.offsetWidth;
+  const H=cssH||parseInt(c.getAttribute('height'))||200;
+  c.width=Math.round(W*DPR);c.height=Math.round(H*DPR);
+  const ctx=c.getContext('2d');ctx.scale(DPR,DPR);
+  ctx.clearRect(0,0,W,H);
+  c._W=W;c._H=H;
+  return{ctx,W,H};
+}
+
+// ─── AREA CHART ──────────────────────────────────────────
+function drawEvo(){
+  const r=prepCanvas('cEvo');if(!r)return;
+  const{ctx,W,H}=r;
+  // daily map
+  const byD={};
+  FV.forEach(v=>{byD[v.f]=(byD[v.f]||0)+v.fact;});
+  const days=[];
+  for(let d=1;d<=28;d++){
+    const key=`2025-05-${String(d).padStart(2,'0')}`;
+    days.push({d,val:byD[key]||0});
+  }
+  let cum=0;const pts2=days.map(d=>{cum+=d.val;return{...d,cum};});
+  const maxC=Math.max(...pts2.map(p=>p.cum),1);
+  const maxV=Math.max(...pts2.map(p=>p.val),1);
+  const PL=54,PR=16,PT=18,PB=32;
+  const cw=W-PL-PR,ch=H-PT-PB;
+
+  // grid
+  for(let i=0;i<=4;i++){
+    const y=PT+ch*(1-i/4);
+    ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(PL,y);ctx.lineTo(PL+cw,y);ctx.stroke();
+    ctx.fillStyle='#555';ctx.font=`9px ${document.body.style.fontFamily||'sans-serif'}`;
+    ctx.textAlign='right';
+    ctx.fillText($(maxC*i/4,true),PL-5,y+3);
+  }
+  // x axis
+  [1,7,14,21,28].forEach(d=>{
+    const x=PL+(d-1)/27*cw;
+    ctx.fillStyle='#555';ctx.font='9px sans-serif';ctx.textAlign='center';
+    ctx.fillText(`${d}/05`,x,H-6);
+  });
+
+  // daily bars
+  pts2.forEach(p=>{
+    if(!p.val)return;
+    const x=PL+(p.d-1)/27*cw;
+    const bw=cw/28*0.55;
+    const bh=p.val/maxV*ch*0.28;
+    ctx.fillStyle='rgba(227,24,55,0.25)';
+    ctx.beginPath();ctx.roundRect(x-bw/2,PT+ch-bh,bw,bh,2);ctx.fill();
+  });
+
+  // area
+  const pts=pts2.map(p=>({
+    x:PL+(p.d-1)/27*cw,
+    y:PT+ch*(1-p.cum/maxC)
+  }));
+  const grad=ctx.createLinearGradient(0,PT,0,PT+ch);
+  grad.addColorStop(0,'rgba(227,24,55,0.4)');
+  grad.addColorStop(1,'rgba(227,24,55,0.02)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,PT+ch);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,PT+ch);
+  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+
+  // line
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){
+    const mx=(pts[i-1].x+pts[i].x)/2;
+    ctx.bezierCurveTo(mx,pts[i-1].y,mx,pts[i].y,pts[i].x,pts[i].y);
+  }
+  ctx.strokeStyle='#E31837';ctx.lineWidth=2;ctx.stroke();
+
+  // dots on sale days
+  pts2.forEach((p,i)=>{
+    if(!p.val)return;
+    ctx.beginPath();ctx.arc(pts[i].x,pts[i].y,4,0,Math.PI*2);
+    ctx.fillStyle='#E31837';ctx.fill();
+    ctx.strokeStyle='#08080E';ctx.lineWidth=1.5;ctx.stroke();
+    // label
+    ctx.fillStyle='#E31837';ctx.font='bold 8px sans-serif';ctx.textAlign='center';
+    if(p.val>500)ctx.fillText($(p.val,true),pts[i].x,pts[i].y-9);
+  });
+
+  // total label
+  const lp=pts[pts.length-1];
+  ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.textAlign='left';
+  ctx.fillText('Total: '+$(cum),PL+5,PT+12);
+
+  // hover
+  const c=document.getElementById('cEvo');
+  c._evo={pts,pts2,PL,PR,PT,PB,cw,ch,W,H,maxC};
+}
+
+// ─── HBAR ────────────────────────────────────────────────
+function drawHBar(id,data,colorFn,valFmt){
+  const r=prepCanvas(id);if(!r||!data.length)return;
+  const{ctx,W,H}=r;
+  const PL=115,PR=55,PT=4,PB=6;
+  const cw=W-PL-PR,ih=(H-PT-PB)/data.length;
+  const bh=Math.min(ih*0.55,20);
+  const mx=Math.max(...data.map(d=>d.v),1);
+
+  data.forEach((d,i)=>{
+    const y=PT+i*ih+(ih-bh)/2;
+    const bw=d.v/mx*cw;
+    const col=typeof colorFn==='function'?colorFn(i,d):COLS[i%COLS.length];
+    // bg
+    ctx.fillStyle='rgba(255,255,255,0.03)';
+    ctx.beginPath();ctx.roundRect(PL,y,cw,bh,3);ctx.fill();
+    // bar
+    if(bw>0){
+      const gr=ctx.createLinearGradient(PL,0,PL+bw,0);
+      gr.addColorStop(0,col);gr.addColorStop(1,col+'66');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.roundRect(PL,y,bw,bh,3);ctx.fill();
+    }
+    // label
+    const lbl=d.l.length>15?d.l.slice(0,14)+'…':d.l;
+    ctx.fillStyle='#CCC';ctx.font=`9.5px sans-serif`;ctx.textAlign='right';
+    ctx.fillText(lbl,PL-5,y+bh/2+3.5);
+    // value
+    ctx.fillStyle='#888';ctx.font=`9px sans-serif`;ctx.textAlign='left';
+    ctx.fillText(valFmt(d.v),PL+bw+5,y+bh/2+3.5);
+  });
+}
+
+// ─── DONUT ───────────────────────────────────────────────
+function drawDonut(id,data,colorFn,centerLbl,W2,H2){
+  const r=prepCanvas(id);if(!r||!data.length)return;
+  const{ctx,W,H}=r;
+  const tot=data.reduce((s,d)=>s+d.v,0);if(!tot)return;
+  const cx=W*0.42,cy=H*0.45;
+  const R=Math.min(W*.38,H*.38),ri=R*.55;
+  let ang=-Math.PI/2;
+  const arcs=[];
+
+  data.forEach((d,i)=>{
+    const sl=d.v/tot*Math.PI*2;
+    const col=typeof colorFn==='function'?colorFn(i,d):COLS[i%COLS.length];
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,ang,ang+sl);ctx.closePath();
+    ctx.fillStyle=col;ctx.fill();
+    ctx.strokeStyle='#08080E';ctx.lineWidth=2;ctx.stroke();
+    arcs.push({ang,sl,col,d});
+    ang+=sl;
+  });
+  // hole
+  ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);ctx.fillStyle='#13131E';ctx.fill();
+  // center
+  ctx.fillStyle='#FFF';ctx.font=`bold 12px sans-serif`;ctx.textAlign='center';
+  ctx.fillText($(tot,true),cx,cy+2);
+  ctx.fillStyle='#666';ctx.font=`8px sans-serif`;
+  ctx.fillText(centerLbl||'total',cx,cy+14);
+  // legend
+  const lx=W*0.72,lyStart=H*.12;
+  data.slice(0,6).forEach((d,i)=>{
+    const col=typeof colorFn==='function'?colorFn(i,d):COLS[i%COLS.length];
+    const ly=lyStart+i*22;
+    ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(lx,ly,8,8,2);ctx.fill();
+    ctx.fillStyle='#AAA';ctx.font='9px sans-serif';ctx.textAlign='left';
+    ctx.fillText(d.l.length>12?d.l.slice(0,11)+'…':d.l,lx+12,ly+7);
+    ctx.fillStyle='#666';ctx.font='8.5px sans-serif';
+    ctx.fillText(`${(d.v/tot*100).toFixed(0)}% · ${$(d.v)}`,lx+12,ly+17);
+  });
+}
+
+// ─── PRODUCTS ────────────────────────────────────────────
+function drawProds(){
+  const data=FV.map(v=>({l:PROD_MAP[v.id]||'Otro',v:v.fact}))
+    .sort((a,b)=>b.v-a.v);
+  drawHBar('cProd',data,i=>COLS[i%COLS.length],v=>$(v));
+}
+
+// ─── CANALES ─────────────────────────────────────────────
+function drawCanales(){
+  const byC={};
+  FV.forEach(v=>{byC[v.canal]=(byC[v.canal]||0)+v.fact;});
+  const data=Object.entries(byC).map(([k,v])=>({l:k,v})).sort((a,b)=>b.v-a.v);
+  drawDonut('cCan',data,(i,d)=>CANAL_COL[d.l]||COLS[i],'facturación');
+}
+
+// ─── CLIENTES ────────────────────────────────────────────
+function drawClis(){
+  const sorted=[...CLIENTES].sort((a,b)=>b.fact-a.fact);
+  const data=sorted.map(c=>({l:c.nom.split(' ').map((w,i)=>i===0?w:w[0]+'.').join(' '),v:c.fact,seg:c.seg}));
+  drawHBar('cCli',data,(i,d)=>SEG_COL[d.seg]||'#666',v=>$(v));
+}
+
+// ─── GASTOS ──────────────────────────────────────────────
+function drawGastos(){
+  const data=GASTOS.map(g=>({l:g.cat,v:g.tot}));
+  drawDonut('cGas',data,i=>COLS[i%COLS.length],'gastos');
+}
+
+// ─── MAP ─────────────────────────────────────────────────
+function buildMap(){
+  const svg=document.getElementById('mdepts');if(!svg)return;
+  const dSales={};
+  VENTAS.forEach(v=>{dSales[v.dep]=(dSales[v.dep]||0)+v.fact;});
+  const mx=Math.max(...Object.values(dSales),1);
+
+  function lerp(a,b,t){return Math.round(a+(b-a)*t);}
+  function col(nm){
+    const v=(dSales[nm]||0)/mx;
+    // from dark grey to red
+    const r=lerp(30,227,v),g=lerp(30,24,v),b=lerp(45,55,v);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  let html='';
+  DEPTOS.forEach(d=>{
+    const sales=dSales[d.nm]||0;
+    const intensity=sales/mx;
+    const sz=d.mvd?15:8+intensity*14;
+    const stroke=d.mvd?'#FFD700':'rgba(255,255,255,0.2)';
+    const sw=d.mvd?2:0.8;
+    html+=`<g class="dc" data-nm="${d.nm}" data-s="${sales}" onclick="pickDep('${d.nm}')" style="cursor:pointer">
+      <circle cx="${d.cx}" cy="${d.cy}" r="${sz}" fill="${col(d.nm)}" stroke="${stroke}" stroke-width="${sw}" opacity="${d.mvd?1:0.85}"/>
+      <text x="${d.cx}" y="${d.cy+1}" font-size="7.5" fill="rgba(255,255,255,${intensity>0.3?0.9:0.6})" text-anchor="middle" dominant-baseline="middle" pointer-events="none" font-family="sans-serif" font-weight="600">${d.ab}</text>
+    </g>`;
+  });
+  svg.innerHTML=html;
+
+  // tooltip
+  const map=document.getElementById('umap');
+  map.addEventListener('mousemove',e=>{
+    const t=e.target.closest('.dc');
+    const tip=document.getElementById('tip');
+    if(t){
+      const nm=t.dataset.nm,s=parseInt(t.dataset.s)||0;
+      const ped=VENTAS.filter(v=>v.dep===nm).length;
+      tip.innerHTML=`<strong>${nm}</strong><br>Facturación: ${$(s)}<br>Pedidos: ${ped}`;
+      tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-35)+'px';
+    }else{tip.style.display='none';}
+  });
+  map.addEventListener('mouseleave',()=>{document.getElementById('tip').style.display='none';});
+}
+
+// ─── PITBOT ──────────────────────────────────────────────
+function buildBot(){
+  const cvPct=(BOT.ventas/BOT.total*100).toFixed(0);
+  const stars='★'.repeat(Math.round(BOT.sat))+'☆'.repeat(5-Math.round(BOT.sat));
+  document.getElementById('botStats').innerHTML=`
+    <div class="srow"><span class="slbl">Total conversaciones</span><span class="sval" style="color:var(--teal)">${BOT.total}</span></div>
+    <div class="srow"><span class="slbl">💰 Ventas atribuidas</span><span class="sval" style="color:var(--accent)">${BOT.ventas} <small style="color:#777">(${cvPct}%)</small></span></div>
+    <div class="srow"><span class="slbl">✅ Resueltas</span><span class="sval" style="color:var(--green)">${BOT.resueltos}</span></div>
+    <div class="srow"><span class="slbl">⏱ Tiempo medio resp.</span><span class="sval">${BOT.tiempo} min</span></div>
+    <div class="srow"><span class="slbl">⭐ Satisfacción</span><span class="sval" style="color:var(--gold);font-size:11px">${stars} ${BOT.sat}</span></div>
+    <div style="margin-top:10px">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px">Conv. → Venta</div>
+      <div class="pbar"><div class="pfill" style="width:${cvPct}%;background:linear-gradient(90deg,var(--accent),#FF6B6B)"></div></div>
+      <div style="font-size:9px;color:#666;margin-top:2px;text-align:right">${cvPct}%</div>
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05)">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px">Meta Ads</div>
+      <div class="srow" style="padding:4px 0"><span class="slbl">Inversión</span><span class="sval" style="color:#777;font-size:10px">$7.000</span></div>
+      <div class="srow" style="padding:4px 0"><span class="slbl">Fact. atribuida</span><span class="sval" style="color:#777;font-size:10px">$68.400</span></div>
+      <div class="srow" style="padding:4px 0"><span class="slbl">ROAS</span><span class="sval" style="color:var(--gold)">9.8×</span></div>
+      <div class="srow" style="padding:4px 0"><span class="slbl">CAC</span><span class="sval" style="color:var(--orange)">$875</span></div>
+    </div>`;
+}
+
+// ─── FUNNEL ──────────────────────────────────────────────
+function buildFun(){
+  const tot=LEADS.reduce((s,l)=>s+l.n,0);
+  const gan=LEADS.find(l=>l.est==='Ganado')?.n||0;
+  const per=LEADS.find(l=>l.est==='Perdido')?.n||0;
+  const ec={Ganado:'#00E676','En negociación':'#FF9800',Presupuestado:'#FFD700',Contactado:'#00BCD4',Nuevo:'#9C27B0',Perdido:'#E31837'};
+  let html=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="text-align:center;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);border-radius:8px;padding:10px">
+        <div style="font-size:22px;font-weight:900;color:var(--green)">${gan}</div>
+        <div style="font-size:9px;color:#666">Ganados</div>
+      </div>
+      <div style="text-align:center;background:rgba(227,24,55,.08);border:1px solid rgba(227,24,55,.2);border-radius:8px;padding:10px">
+        <div style="font-size:22px;font-weight:900;color:var(--accent)">${per}</div>
+        <div style="font-size:9px;color:#666">Perdidos</div>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.7px">Pipeline por estado</div>`;
+  LEADS.forEach(l=>{
+    const p=l.n/tot*100,c=ec[l.est]||'#666';
+    html+=`<div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px">
+        <span style="color:#AAA">${l.est}</span>
+        <span style="color:${c};font-weight:700">${l.n}</span>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${p}%;background:${c}"></div></div>
+    </div>`;
+  });
+  html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);font-size:10px;color:var(--muted)">
+    Conv. Lead→Venta: <strong style="color:var(--green)">${(gan/tot*100).toFixed(0)}%</strong>
+    &nbsp;·&nbsp; Total leads: <strong>${tot}</strong>
+  </div>`;
+  document.getElementById('funStats').innerHTML=html;
+}
+
+// ─── CANVAS HOVER (evo) ──────────────────────────────────
+function addEvoHover(){
+  const c=document.getElementById('cEvo');if(!c)return;
+  c.addEventListener('mousemove',e=>{
+    const tip=document.getElementById('tip');
+    const data=c._evo;if(!data)return;
+    const rect=c.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const{pts,pts2,PL,cw}=data;
+    // find nearest point
+    let minD=99,idx=-1;
+    pts.forEach((p,i)=>{const d=Math.abs(p.x-x);if(d<minD){minD=d;idx=i;}});
+    if(idx>=0&&minD<30&&pts2[idx]){
+      const p=pts2[idx];
+      tip.innerHTML=`<strong>${p.d}/05/2025</strong><br>Venta: ${p.val?$(p.val):'Sin venta'}<br>Acum: ${$(p.cum)}`;
+      tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-40)+'px';
+    }else{tip.style.display='none';}
+  });
+  c.addEventListener('mouseleave',()=>{document.getElementById('tip').style.display='none';});
+}
+
+// ─── RUN (filter + redraw) ────────────────────────────────
+function run(){
+  applyF();
+  updKPIs();
+  drawEvo();
+  drawProds();
+  drawCanales();
+  addEvoHover();
+}
+
+// ─── INIT ────────────────────────────────────────────────
+function init(){
+  const now=new Date();
+  document.getElementById('hdrDate').textContent=now.toLocaleDateString('es-UY',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  buildMap();
+  drawClis();
+  drawGastos();
+  buildBot();
+  buildFun();
+  run();
+
+  let rt;
+  window.addEventListener('resize',()=>{
+    clearTimeout(rt);
+    rt=setTimeout(()=>{run();drawClis();drawGastos();},220);
+  });
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+}else{
+  requestAnimationFrame(()=>requestAnimationFrame(init));
+}
+</script>
+</body>
+</html>
